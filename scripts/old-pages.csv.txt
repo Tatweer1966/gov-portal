@@ -1,0 +1,3 @@
+title,body,slug
+"خدمة جديدة","تفاصيل الخدمة...","new-service"
+"إعلان مهم","نص الإعلان...","important-announcement"
