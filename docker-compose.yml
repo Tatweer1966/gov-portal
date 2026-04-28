@@ -79,7 +79,7 @@ services:
     image: directus/directus:10.10.0
     container_name: gov-portal-directus
     environment:
-      KEY: "replace-with-a-secure-random-key-32-chars"
+      KEY: "8dfa8d5286e241459c5b8ada660fd253639858698ebb41a1a806dd55f1f6c079"
       SECRET: "replace-with-a-secure-random-secret-32-chars"
       ADMIN_EMAIL: "admin@example.com"
       ADMIN_PASSWORD: "Admin1234"
@@ -137,6 +137,7 @@ services:
 
       DIRECTUS_URL: http://directus:8055
       NEXT_PUBLIC_DIRECTUS_URL: http://localhost:8055
+      DIRECTUS_TOKEN: 99bac2e075754736977d07790bf729c6dfc2ccaf8c774ebab3bb0213859a7448
 
       OPENSEARCH_URL: http://opensearch:9200
       NEXT_PUBLIC_OPENSEARCH_URL: http://localhost:9200
