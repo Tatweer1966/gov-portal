@@ -5,6 +5,9 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamicImport from 'next/dynamic';
+import { motion } from 'framer-motion';
+import { Badge } from '@/components/ui/badge';
+import { MapPin, Phone, Clock, Calendar, CheckCircle2 } from 'lucide-react';
 
 // Dynamically import map component (no SSR)
 const MapComponent = dynamicImport(() => import('@/components/MapComponent'), { ssr: false });
@@ -33,6 +36,11 @@ interface BookingForm {
   bookingTime: string;
   notes: string;
 }
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' as const } },
+};
 
 export default function TechCentersPage() {
   const [centers, setCenters] = useState<TechCenter[]>([]);
@@ -105,7 +113,7 @@ export default function TechCentersPage() {
   const handleDateTimeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.bookingDate || !form.bookingTime) {
-      alert('ÙŠØ±Ø¬Ù‰ Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„ØªØ§Ø±ÙŠØ® ÙˆØ§Ù„ÙˆÙ‚Øª');
+      alert('يرجى اختيار التاريخ والوقت');
       return;
     }
     setBookingStep('form');
@@ -114,7 +122,7 @@ export default function TechCentersPage() {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.citizenName || !form.citizenNationalId || !form.citizenPhone) {
-      alert('ÙŠØ±Ø¬Ù‰ Ø¥ÙƒÙ…Ø§Ù„ Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø­Ù‚ÙˆÙ„ Ø§Ù„Ù…Ø·Ù„ÙˆØ¨Ø©');
+      alert('يرجى إكمال جميع الحقول المطلوبة');
       return;
     }
     setSubmitting(true);
@@ -136,11 +144,10 @@ export default function TechCentersPage() {
     });
     const data = await res.json();
     if (data.success) {
-      alert(`ØªÙ… Ø§Ù„Ø­Ø¬Ø² Ø¨Ù†Ø¬Ø§Ø­! Ø±Ù‚Ù… Ø§Ù„ØªØªØ¨Ø¹: ${data.bookingNumber}`);
+      alert(`تم الحجز بنجاح! رقم التتبع: ${data.bookingNumber}`);
       setBookingStep('confirm');
-      // Optionally reset or close modal
     } else {
-      alert('Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ø§Ù„Ø­Ø¬Ø². ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.');
+      alert('حدث خطأ أثناء الحجز. يرجى المحاولة مرة أخرى.');
     }
     setSubmitting(false);
   };
@@ -163,18 +170,18 @@ export default function TechCentersPage() {
     });
   };
 
-  if (loading) return <div className="p-8 text-center">Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø±Ø§ÙƒØ² Ø§Ù„ØªÙƒÙ†ÙˆÙ„ÙˆØ¬ÙŠØ©...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center">جاري تحميل المراكز التكنولوجية...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
+    <div dir="rtl" className="min-h-screen bg-gradient-to-b from-primary/5 to-background py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-            <span className="text-3xl">ðŸ“</span>
-          </div>
-          <h1 className="text-3xl font-bold mb-2">Ø§Ù„Ù…Ø±Ø§ÙƒØ² Ø§Ù„ØªÙƒÙ†ÙˆÙ„ÙˆØ¬ÙŠØ©</h1>
-          <p className="text-gray-600">Ø§Ø³ØªØ¹Ø±Ø¶ Ø§Ù„Ù…Ø±Ø§ÙƒØ² Ø§Ù„ØªÙƒÙ†ÙˆÙ„ÙˆØ¬ÙŠØ© ÙˆØ§Ø­Ø¬Ø² Ù…ÙˆØ¹Ø¯Ùƒ Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠØ§Ù‹</p>
+        <div className="text-center mb-10">
+          <Badge className="bg-accent/20 text-accent-foreground border-0 mb-3 text-xs px-3 py-1 rounded-full">
+            خدمات حكومية
+          </Badge>
+          <h1 className="text-3xl md:text-4xl font-black text-foreground mb-2">المراكز التكنولوجية</h1>
+          <p className="text-muted-foreground">استعرض المراكز التكنولوجية واحجز موعدك إلكترونياً</p>
         </div>
 
         {/* Map */}
@@ -183,196 +190,191 @@ export default function TechCentersPage() {
         </div>
 
         {/* Centers Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {centers.map(center => (
-            <div key={center.id} className="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition">
-              <h2 className="text-xl font-semibold text-primary">{center.name_ar}</h2>
-              <p className="text-gray-600 text-sm">{center.district}</p>
-              <p className="text-gray-600 text-sm mt-2">ðŸ“ {center.address_ar}</p>
-              <p className="text-gray-600 text-sm">ðŸ“ž {center.phone}</p>
-              <p className="text-gray-600 text-sm">ðŸ•’ {center.working_hours_ar}</p>
-              <div className="mt-3">
-                <h3 className="font-semibold text-sm">Ø§Ù„Ø®Ø¯Ù…Ø§Øª Ø§Ù„Ù…ØªØ§Ø­Ø©:</h3>
-                <ul className="list-disc list-inside text-sm text-gray-600 mt-1">
-                  {center.services.map(s => (
-                    <li key={s.id} className="flex justify-between items-center">
-                      {s.name_ar}
-                      <button
-                        onClick={() => startBooking(center, s)}
-                        className="text-primary text-xs hover:underline"
-                      >
-                        Ø­Ø¬Ø²
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {centers.map((center, idx) => (
+            <motion.div
+              key={center.id}
+              initial="hidden"
+              animate="visible"
+              variants={fadeUp}
+              transition={{ delay: idx * 0.05 }}
+              whileHover={{ y: -5 }}
+              className="bg-card rounded-2xl border border-border shadow-sm hover:shadow-lg transition-all"
+            >
+              <div className="p-5">
+                <h2 className="text-xl font-bold text-primary mb-1">{center.name_ar}</h2>
+                <p className="text-sm text-muted-foreground">{center.district}</p>
+                <div className="mt-3 space-y-1 text-sm text-muted-foreground">
+                  <p className="flex items-center gap-2"><MapPin className="w-4 h-4 text-primary" /> {center.address_ar}</p>
+                  <p className="flex items-center gap-2"><Phone className="w-4 h-4 text-primary" /> {center.phone}</p>
+                  <p className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> {center.working_hours_ar}</p>
+                </div>
+                <div className="mt-4">
+                  <h3 className="font-semibold text-sm">الخدمات المتاحة:</h3>
+                  <ul className="mt-2 space-y-2">
+                    {center.services.map(s => (
+                      <li key={s.id} className="flex justify-between items-center text-sm">
+                        <span>{s.name_ar}</span>
+                        <button
+                          onClick={() => startBooking(center, s)}
+                          className="text-primary text-xs font-semibold hover:underline"
+                        >
+                          حجز
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
+      </div>
 
-        {/* Booking Modal */}
-        {selectedCenter && selectedService && bookingStep !== 'select' && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-                <h2 className="text-xl font-bold">
-                  Ø­Ø¬Ø² Ù…ÙˆØ¹Ø¯ ÙÙŠ {selectedCenter.name_ar}
-                  {selectedService && ` â€“ ${selectedService.name_ar}`}
-                </h2>
-                <button onClick={resetBooking} className="text-gray-500 hover:text-gray-700">âœ•</button>
-              </div>
+      {/* Booking Modal */}
+      {selectedCenter && selectedService && bookingStep !== 'select' && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
+            <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+              <h2 className="text-xl font-bold">
+                حجز موعد في {selectedCenter.name_ar} – {selectedService.name_ar}
+              </h2>
+              <button onClick={resetBooking} className="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
 
-              <div className="p-6">
-                {/* Step 1: Date & Time */}
-                {bookingStep === 'datetime' && (
-                  <form onSubmit={handleDateTimeSubmit} className="space-y-4">
-                    <div>
-                      <label className="block font-medium mb-1">Ø§Ø®ØªØ± Ø§Ù„ØªØ§Ø±ÙŠØ® *</label>
-                      <input
-                        type="date"
-                        required
-                        min={new Date().toISOString().split('T')[0]}
-                        value={form.bookingDate}
-                        onChange={e => setForm({ ...form, bookingDate: e.target.value })}
-                        className="w-full border rounded-lg p-2"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-medium mb-1">Ø§Ø®ØªØ± Ø§Ù„ÙˆÙ‚Øª *</label>
-                      {loadingTimes ? (
-                        <div className="text-gray-500">Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø£ÙˆÙ‚Ø§Øª Ø§Ù„Ù…ØªØ§Ø­Ø©...</div>
-                      ) : availableTimes.length === 0 ? (
-                        <div className="text-red-500">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£ÙˆÙ‚Ø§Øª Ù…ØªØ§Ø­Ø© ÙÙŠ Ù‡Ø°Ø§ Ø§Ù„ØªØ§Ø±ÙŠØ®</div>
-                      ) : (
-                        <div className="grid grid-cols-3 gap-2">
-                          {availableTimes.map(time => (
-                            <button
-                              key={time}
-                              type="button"
-                              onClick={() => setForm({ ...form, bookingTime: time })}
-                              className={`p-2 border rounded-lg text-center transition ${
-                                form.bookingTime === time
-                                  ? 'bg-primary text-white border-primary'
-                                  : 'hover:border-primary'
-                              }`}
-                            >
-                              {time}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex justify-between gap-3 pt-4">
-                      <button
-                        type="button"
-                        onClick={resetBooking}
-                        className="px-4 py-2 border rounded-lg hover:bg-gray-50"
-                      >
-                        Ø¥Ù„ØºØ§Ø¡
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={!form.bookingDate || !form.bookingTime}
-                        className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50"
-                      >
-                        Ø§Ù„ØªØ§Ù„ÙŠ
-                      </button>
-                    </div>
-                  </form>
-                )}
-
-                {/* Step 2: Personal Information */}
-                {bookingStep === 'form' && (
-                  <form onSubmit={handleFormSubmit} className="space-y-4">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block font-medium mb-1">Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„ *</label>
-                        <input
-                          type="text"
-                          required
-                          value={form.citizenName}
-                          onChange={e => setForm({ ...form, citizenName: e.target.value })}
-                          className="w-full border rounded-lg p-2"
-                        />
+            <div className="p-6">
+              {bookingStep === 'datetime' && (
+                <form onSubmit={handleDateTimeSubmit} className="space-y-4">
+                  <div>
+                    <label className="block font-medium mb-1">اختر التاريخ *</label>
+                    <input
+                      type="date"
+                      required
+                      min={new Date().toISOString().split('T')[0]}
+                      value={form.bookingDate}
+                      onChange={e => setForm({ ...form, bookingDate: e.target.value })}
+                      className="w-full border border-border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1">اختر الوقت *</label>
+                    {loadingTimes ? (
+                      <div className="text-muted-foreground">جاري تحميل الأوقات المتاحة...</div>
+                    ) : availableTimes.length === 0 ? (
+                      <div className="text-red-500">لا توجد أوقات متاحة في هذا التاريخ</div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-2">
+                        {availableTimes.map(time => (
+                          <button
+                            key={time}
+                            type="button"
+                            onClick={() => setForm({ ...form, bookingTime: time })}
+                            className={`p-2 border rounded-lg text-center transition ${
+                              form.bookingTime === time
+                                ? 'bg-primary text-white border-primary'
+                                : 'hover:border-primary'
+                            }`}
+                          >
+                            {time}
+                          </button>
+                        ))}
                       </div>
-                      <div>
-                        <label className="block font-medium mb-1">Ø§Ù„Ø±Ù‚Ù… Ø§Ù„Ù‚ÙˆÙ…ÙŠ *</label>
-                        <input
-                          type="text"
-                          required
-                          value={form.citizenNationalId}
-                          onChange={e => setForm({ ...form, citizenNationalId: e.target.value })}
-                          className="w-full border rounded-lg p-2"
-                        />
-                      </div>
-                      <div>
-                        <label className="block font-medium mb-1">Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ *</label>
-                        <input
-                          type="tel"
-                          required
-                          value={form.citizenPhone}
-                          onChange={e => setForm({ ...form, citizenPhone: e.target.value })}
-                          className="w-full border rounded-lg p-2"
-                        />
-                      </div>
-                      <div>
-                        <label className="block font-medium mb-1">Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ</label>
-                        <input
-                          type="email"
-                          value={form.citizenEmail}
-                          onChange={e => setForm({ ...form, citizenEmail: e.target.value })}
-                          className="w-full border rounded-lg p-2"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block font-medium mb-1">Ù…Ù„Ø§Ø­Ø¸Ø§Øª (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)</label>
-                      <textarea
-                        rows={3}
-                        value={form.notes}
-                        onChange={e => setForm({ ...form, notes: e.target.value })}
-                        className="w-full border rounded-lg p-2"
-                      />
-                    </div>
-                    <div className="flex justify-between gap-3 pt-4">
-                      <button
-                        type="button"
-                        onClick={() => setBookingStep('datetime')}
-                        className="px-4 py-2 border rounded-lg hover:bg-gray-50"
-                      >
-                        Ø±Ø¬ÙˆØ¹
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={submitting}
-                        className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50"
-                      >
-                        {submitting ? 'Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø­Ø¬Ø²...' : 'ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø­Ø¬Ø²'}
-                      </button>
-                    </div>
-                  </form>
-                )}
-
-                {/* Step 3: Confirmation */}
-                {bookingStep === 'confirm' && (
-                  <div className="text-center py-6">
-                    <div className="text-green-600 text-5xl mb-4">âœ“</div>
-                    <h3 className="text-xl font-bold mb-2">ØªÙ… Ø­Ø¬Ø² Ù…ÙˆØ¹Ø¯Ùƒ Ø¨Ù†Ø¬Ø§Ø­!</h3>
-                    <p className="text-gray-600">Ø³ÙŠØªÙ… Ø§Ù„ØªÙˆØ§ØµÙ„ Ù…Ø¹Ùƒ Ù„ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø­Ø¬Ø².</p>
+                    )}
+                  </div>
+                  <div className="flex justify-between gap-3 pt-4">
+                    <button type="button" onClick={resetBooking} className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+                      إلغاء
+                    </button>
                     <button
-                      onClick={resetBooking}
-                      className="mt-6 bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90"
+                      type="submit"
+                      disabled={!form.bookingDate || !form.bookingTime}
+                      className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50"
                     >
-                      Ø¥ØºÙ„Ø§Ù‚
+                      التالي
                     </button>
                   </div>
-                )}
-              </div>
+                </form>
+              )}
+
+              {bookingStep === 'form' && (
+                <form onSubmit={handleFormSubmit} className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-medium mb-1">الاسم الكامل *</label>
+                      <input
+                        type="text"
+                        required
+                        value={form.citizenName}
+                        onChange={e => setForm({ ...form, citizenName: e.target.value })}
+                        className="w-full border rounded-lg p-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1">الرقم القومي *</label>
+                      <input
+                        type="text"
+                        required
+                        value={form.citizenNationalId}
+                        onChange={e => setForm({ ...form, citizenNationalId: e.target.value })}
+                        className="w-full border rounded-lg p-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1">رقم الهاتف *</label>
+                      <input
+                        type="tel"
+                        required
+                        value={form.citizenPhone}
+                        onChange={e => setForm({ ...form, citizenPhone: e.target.value })}
+                        className="w-full border rounded-lg p-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1">البريد الإلكتروني</label>
+                      <input
+                        type="email"
+                        value={form.citizenEmail}
+                        onChange={e => setForm({ ...form, citizenEmail: e.target.value })}
+                        className="w-full border rounded-lg p-2"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1">ملاحظات (اختياري)</label>
+                    <textarea
+                      rows={3}
+                      value={form.notes}
+                      onChange={e => setForm({ ...form, notes: e.target.value })}
+                      className="w-full border rounded-lg p-2"
+                    />
+                  </div>
+                  <div className="flex justify-between gap-3 pt-4">
+                    <button type="button" onClick={() => setBookingStep('datetime')} className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+                      رجوع
+                    </button>
+                    <button type="submit" disabled={submitting} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50">
+                      {submitting ? 'جاري الحجز...' : 'تأكيد الحجز'}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {bookingStep === 'confirm' && (
+                <div className="text-center py-6">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">تم حجز موعدك بنجاح!</h3>
+                  <p className="text-muted-foreground">سيتم التواصل معك لتأكيد الحجز.</p>
+                  <button onClick={resetBooking} className="mt-6 bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90">
+                    إغلاق
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

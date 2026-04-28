@@ -1,3 +1,10 @@
 ﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: #1e3a8a;          /* fallback blue (Giza) */
+    --secondary: #1b5e20;        /* fallback green (Alexandria) */
+  }
+}

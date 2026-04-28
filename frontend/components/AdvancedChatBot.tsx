@@ -11,19 +11,42 @@ interface Message {
 
 export default function AdvancedChatBot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'مرحباً! أنا المساعد الذكي للبوابة الحكومية. اسألني عن الخدمات، التصاريح، المراكز التكنولوجية، وأي شيء يخص محافظة الجيزة.',
-      isUser: false,
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [sessionId] = useState(() => Math.random().toString(36).substring(7));
+  const [tenantName, setTenantName] = useState<string>('المحافظة');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load tenant name and set initial message
+  useEffect(() => {
+    fetch('/api/tenant/theme')
+      .then(res => res.json())
+      .then(data => {
+        const name = data.tenantName || 'المحافظة';
+        setTenantName(name);
+        setMessages([
+          {
+            id: '1',
+            text: `مرحباً! أنا المساعد الذكي للبوابة الحكومية لـ ${name}. اسألني عن الخدمات، التصاريح، المراكز التكنولوجية، وأي شيء يخص ${name}.`,
+            isUser: false,
+            timestamp: new Date(),
+          },
+        ]);
+      })
+      .catch(() => {
+        // Fallback if theme API fails
+        setMessages([
+          {
+            id: '1',
+            text: 'مرحباً! أنا المساعد الذكي للبوابة الحكومية. اسألني عن الخدمات، التصاريح، المراكز التكنولوجية، وأي شيء يخص المحافظة.',
+            isUser: false,
+            timestamp: new Date(),
+          },
+        ]);
+      });
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -47,7 +70,7 @@ export default function AdvancedChatBot() {
       const res = await fetch('/api/chatbot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input, userId, sessionId }),
+        body: JSON.stringify({ message: input, userId, sessionId, tenant: tenantName }),
       });
       const data = await res.json();
       const botMessage: Message = {

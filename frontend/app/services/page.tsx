@@ -2,10 +2,11 @@
 
 export const dynamic = 'force-dynamic';
 
-
-
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Search, Star, ChevronLeft } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface Service {
   id: number;
@@ -15,6 +16,11 @@ interface Service {
   is_featured: boolean;
   category_name?: string;
 }
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' as const } },
+};
 
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
@@ -37,51 +43,82 @@ export default function ServicesPage() {
   }, [search, featuredOnly]);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold text-center mb-8">Ø§Ù„Ø®Ø¯Ù…Ø§Øª Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠØ©</h1>
-        <div className="max-w-2xl mx-auto mb-8 flex flex-wrap gap-4 justify-center">
-          <input
-            type="text"
-            placeholder="Ø§Ø¨Ø­Ø« Ø¹Ù† Ø®Ø¯Ù…Ø©..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 px-4 py-2 border rounded-lg focus:ring-primary focus:border-primary"
-          />
-          <label className="flex items-center gap-2">
+    <div dir="rtl" className="min-h-screen bg-gradient-to-b from-primary/5 to-background py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-10">
+          <Badge className="bg-accent/20 text-accent-foreground border-0 mb-3 text-xs px-3 py-1 rounded-full">
+            خدمات حكومية
+          </Badge>
+          <h1 className="text-3xl md:text-4xl font-black text-foreground mb-2">الخدمات الإلكترونية</h1>
+          <p className="text-muted-foreground">تصفح جميع الخدمات المتاحة للمواطنين</p>
+        </div>
+
+        {/* Search and Filter */}
+        <div className="flex flex-wrap gap-4 mb-8 justify-center">
+          <div className="flex-1 min-w-[250px]">
+            <div className="relative">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="ابحث عن خدمة..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pr-10 pl-4 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+          </div>
+          <label className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg cursor-pointer hover:border-primary/40 transition">
             <input
               type="checkbox"
               checked={featuredOnly}
-              onChange={(e) => setFeaturedOnly(e.target.checked)}
-              className="rounded text-primary"
+              onChange={e => setFeaturedOnly(e.target.checked)}
+              className="w-4 h-4 text-primary rounded"
             />
-            Ø§Ù„Ø®Ø¯Ù…Ø§Øª Ø§Ù„Ù…Ù…ÙŠØ²Ø© ÙÙ‚Ø·
+            <span className="text-sm font-medium">الخدمات المميزة فقط</span>
           </label>
         </div>
+
         {loading ? (
-          <div className="text-center py-12">Ø¬Ø§Ø±ÙŠ Ø§Ù„ØªØ­Ù…ÙŠÙ„...</div>
+          <div className="text-center py-20 text-muted-foreground">جاري التحميل...</div>
         ) : services.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø®Ø¯Ù…Ø§Øª Ù…Ø·Ø§Ø¨Ù‚Ø©</div>
+          <div className="text-center py-20 text-muted-foreground">
+            <Search className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p className="text-lg">لا توجد خدمات مطابقة لبحثك</p>
+          </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((service) => (
-              <Link
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {services.map((service, idx) => (
+              <motion.div
                 key={service.id}
-                href={`/services/${service.slug}`}
-                className="bg-white rounded-xl shadow-md hover:shadow-lg transition p-5 group"
+                initial="hidden"
+                animate="visible"
+                variants={fadeUp}
+                transition={{ delay: idx * 0.05 }}
+                whileHover={{ y: -5 }}
+                className="bg-card rounded-2xl border border-border shadow-sm hover:shadow-lg transition-all h-full"
               >
-                <h2 className="text-xl font-semibold group-hover:text-primary transition">
-                  {service.name_ar}
-                </h2>
-                <p className="text-gray-600 text-sm mt-2 line-clamp-2">
-                  {service.description_ar || 'Ø§Ø¶ØºØ· Ù„Ø¹Ø±Ø¶ Ø§Ù„ØªÙØ§ØµÙŠÙ„'}
-                </p>
-                {service.is_featured && (
-                  <span className="inline-block mt-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                    Ø®Ø¯Ù…Ø© Ù…Ù…ÙŠØ²Ø©
-                  </span>
-                )}
-              </Link>
+                <Link href={`/services/${service.slug}`} className="block p-5 h-full">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h2 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                      {service.name_ar}
+                    </h2>
+                    {service.is_featured && (
+                      <Star className="w-5 h-5 text-yellow-500 fill-yellow-500 shrink-0" />
+                    )}
+                  </div>
+                  <p className="text-muted-foreground text-sm mt-2 line-clamp-3">
+                    {service.description_ar || 'اضغط لعرض التفاصيل'}
+                  </p>
+                  {service.category_name && (
+                    <Badge className="mt-3 bg-gray-100 text-gray-600 border-0 text-xs">
+                      {service.category_name}
+                    </Badge>
+                  )}
+                  <div className="flex items-center gap-1 text-primary text-sm font-semibold opacity-0 group-hover:opacity-100 transition-all mt-3 translate-x-1 group-hover:translate-x-0">
+                    عرض التفاصيل <ChevronLeft className="w-4 h-4" />
+                  </div>
+                </Link>
+              </motion.div>
             ))}
           </div>
         )}

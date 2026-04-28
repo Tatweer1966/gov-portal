@@ -5,14 +5,37 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import NewsTicker from '@/components/NewsTicker';
 import AdvancedChatBot from '@/components/AdvancedChatBot';
+import { headers } from 'next/headers';
 
 const inter = Inter({ subsets: ['latin'] });
 const cairo = Cairo({ subsets: ['arabic', 'latin'] });
 
-export const metadata: Metadata = {
-  title: 'البوابة الحكومية - محافظة الجيزة',
-  description: 'البوابة الرسمية لمحافظة الجيزة - خدمات حكومية إلكترونية',
+// Helper to get tenant from host header (server-side)
+function getTenantFromHost(host: string): { name: string; schema: string } {
+  if (host.includes('alexandria') || host.includes('alex')) {
+    return { schema: 'gov_alexandria', name: 'alexandria' };
+  }
+  return { schema: 'public', name: 'giza' };
+}
+
+// Map tenant name to display name
+const tenantDisplayNames: Record<string, string> = {
+  giza: 'الجيزة',
+  alexandria: 'الإسكندرية',
+  // add other governorates as needed
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const headersList = await headers();
+  const host = headersList.get('host') || '';
+  const tenant = getTenantFromHost(host);
+  const displayName = tenantDisplayNames[tenant.name] || 'المحافظة';
+
+  return {
+    title: `البوابة الحكومية - محافظة ${displayName}`,
+    description: `البوابة الرسمية لمحافظة ${displayName} - خدمات حكومية إلكترونية`,
+  };
+}
 
 export default function RootLayout({
   children,

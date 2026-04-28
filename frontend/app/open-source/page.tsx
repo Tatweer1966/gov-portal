@@ -2,27 +2,58 @@
 
 export const dynamic = 'force-dynamic';
 
+import { Badge } from '@/components/ui/badge';
+
 const components = [
-  { name: 'Next.js', license: 'MIT' }, { name: 'React', license: 'MIT' }, { name: 'Tailwind CSS', license: 'MIT' },
-  { name: 'PostgreSQL', license: 'PostgreSQL License' }, { name: 'Redis', license: 'BSD-3-Clause' },
-  { name: 'MinIO', license: 'AGPL-3.0' }, { name: 'OpenSearch', license: 'Apache-2.0' },
+  { name: 'Next.js', license: 'MIT' },
+  { name: 'React', license: 'MIT' },
+  { name: 'Tailwind CSS', license: 'MIT' },
+  { name: 'PostgreSQL', license: 'PostgreSQL License' },
+  { name: 'Redis', license: 'BSD-3-Clause' },
+  { name: 'MinIO', license: 'AGPL-3.0' },
+  { name: 'OpenSearch', license: 'Apache-2.0' },
+  { name: 'Leaflet', license: 'BSD-2-Clause' },
+  { name: 'Framer Motion', license: 'MIT' },
+  { name: 'Lucide Icons', license: 'ISC' },
 ];
 
 export default function OpenSourcePage() {
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-3xl">
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <h1 className="text-3xl font-bold mb-4">Ø§Ù„Ø¨Ø±Ù…Ø¬ÙŠØ§Øª Ù…ÙØªÙˆØ­Ø© Ø§Ù„Ù…ØµØ¯Ø± Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…Ø©</h1>
-          <p className="mb-4">Ù‡Ø°Ø§ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ Ù…Ø¨Ù†ÙŠ Ø¨Ø§Ù„ÙƒØ§Ù…Ù„ Ø¹Ù„Ù‰ Ø¨Ø±Ù…Ø¬ÙŠØ§Øª Ù…ÙØªÙˆØ­Ø© Ø§Ù„Ù…ØµØ¯Ø±. Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£ÙŠ Ù…ÙƒÙˆÙ†Ø§Øª Ø§Ø­ØªÙƒØ§Ø±ÙŠØ©.</p>
-          <table className="w-full border-collapse">
-            <thead><tr className="bg-gray-100"><th className="border p-2">Ø§Ù„Ù…ÙƒÙˆÙ†</th><th className="border p-2">Ø§Ù„ØªØ±Ø®ÙŠØµ</th></tr></thead>
-            <tbody>
-              {components.map(c => <tr key={c.name}><td className="border p-2">{c.name}</td><td className="border p-2">{c.license}</td></tr>)}
-            </tbody>
-          </table>
-          <div className="mt-6 bg-green-50 p-4 rounded-lg">
-            <p className="text-green-800">âœ… Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø­Ø¨Ø³ ØªÙ‚Ù†ÙŠ â€“ Ø§Ù„Ø¬Ù‡Ø© Ø§Ù„Ù…ØªØ¹Ø§Ù‚Ø¯Ø© ØªÙ…Ù„Ùƒ Ø§Ù„Ø­Ù‚ Ø§Ù„ÙƒØ§Ù…Ù„ ÙÙŠ ØªØ¹Ø¯ÙŠÙ„ ÙˆØªØ´ØºÙŠÙ„ Ø§Ù„Ù†Ø¸Ø§Ù….</p>
+    <div dir="rtl" className="min-h-screen bg-gradient-to-b from-primary/5 to-background py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-8">
+          <Badge className="bg-accent/20 text-accent-foreground border-0 mb-3 text-xs px-3 py-1 rounded-full">
+            الشفافية
+          </Badge>
+          <h1 className="text-3xl md:text-4xl font-black text-foreground mb-2">البرمجيات مفتوحة المصدر المستخدمة</h1>
+          <p className="text-muted-foreground">
+            هذا المشروع مبني بالكامل على برمجيات مفتوحة المصدر. لا توجد أي مكونات احتكارية.
+          </p>
+        </div>
+
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-primary/5 border-b border-border">
+                  <th className="p-3 text-right font-semibold">المكون</th>
+                  <th className="p-3 text-right font-semibold">الترخيص</th>
+                </tr>
+              </thead>
+              <tbody>
+                {components.map((c, idx) => (
+                  <tr key={c.name} className={idx % 2 === 0 ? 'bg-background' : 'bg-gray-50'}>
+                    <td className="p-3 border-b border-border">{c.name}</td>
+                    <td className="p-3 border-b border-border">{c.license}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-6 bg-green-50 rounded-lg p-5 m-6 text-green-800 flex items-start gap-3">
+            <span className="text-xl">✅</span>
+            <p className="text-sm">لا يوجد حبس تقني – الجهة المتعاقدة تملك الحق الكامل في تعديل وتشغيل النظام.</p>
           </div>
         </div>
       </div>

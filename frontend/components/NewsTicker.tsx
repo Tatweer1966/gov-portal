@@ -8,6 +8,15 @@ interface NewsItem {
   title_ar: string;
   priority: number;
   published_at: string;
+  category?: string; // Added for consistency (optional)
+}
+
+// Safe date formatter for time display
+function formatTime(dateString?: string): string {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '';
+  return date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
 }
 
 export default function NewsTicker() {
@@ -78,7 +87,7 @@ export default function NewsTicker() {
                   <span className={`w-2 h-2 rounded-full ${getPriorityColor(item.priority)}`} />
                   <span>{item.title_ar}</span>
                   <span className="text-gray-400 text-xs">
-                    {new Date(item.published_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                    {formatTime(item.published_at)}
                   </span>
                 </Link>
               ))}

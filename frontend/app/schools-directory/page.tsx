@@ -2,9 +2,10 @@
 
 export const dynamic = 'force-dynamic';
 
-
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Search, MapPin, GraduationCap, School } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface School {
   id: number;
@@ -15,52 +16,107 @@ interface School {
 }
 
 const schoolsData: School[] = [
-  { id: 1, name: 'Ù…Ø¯Ø±Ø³Ø© 6 Ø£ÙƒØªÙˆØ¨Ø± Ø§Ù„Ø±Ø³Ù…ÙŠØ© Ø§Ù„Ù…ØªÙ…ÙŠØ²Ø© Ù„Ù„ØºØ§Øª', district: '6 Ø£ÙƒØªÙˆØ¨Ø±', type: 'Ø±Ø³Ù…ÙŠØ© Ù…ØªÙ…ÙŠØ²Ø© Ù„Ù„ØºØ§Øª', stages: ['KG1', 'KG2', 'Ø§Ø¨ØªØ¯Ø§Ø¦ÙŠ', 'Ø¥Ø¹Ø¯Ø§Ø¯ÙŠ'] },
-  { id: 2, name: 'Ù…Ø¯Ø±Ø³Ø© Ø§Ù„Ø¹Ù…Ø±Ø§Ù†ÙŠØ© Ø§Ù„ØªØ¬Ø±ÙŠØ¨ÙŠØ© Ù„Ù„ØºØ§Øª', district: 'Ø§Ù„Ø¹Ù…Ø±Ø§Ù†ÙŠØ©', type: 'ØªØ¬Ø±ÙŠØ¨ÙŠØ© Ù„ØºØ§Øª', stages: ['KG1', 'KG2', 'Ø§Ø¨ØªØ¯Ø§Ø¦ÙŠ', 'Ø¥Ø¹Ø¯Ø§Ø¯ÙŠ', 'Ø«Ø§Ù†ÙˆÙŠ'] },
-  { id: 3, name: 'Ù…Ø¯Ø±Ø³Ø© Ù…ØµØ·ÙÙ‰ ÙƒØ§Ù…Ù„ Ø§Ù„Ø±Ø³Ù…ÙŠØ© Ø§Ù„Ù…ØªÙ…ÙŠØ²Ø© Ù„Ù„ØºØ§Øª', district: 'Ø§Ù„Ø¹Ù…Ø±Ø§Ù†ÙŠØ©', type: 'Ø±Ø³Ù…ÙŠØ© Ù…ØªÙ…ÙŠØ²Ø© Ù„Ù„ØºØ§Øª', stages: ['Ø§Ø¨ØªØ¯Ø§Ø¦ÙŠ', 'Ø¥Ø¹Ø¯Ø§Ø¯ÙŠ'] },
-  { id: 4, name: 'Ù…Ø¯Ø±Ø³Ø© Ø§Ù„Ù‡Ø±Ù… Ø§Ù„Ø«Ø§Ù†ÙˆÙŠØ© Ø¨Ù†ÙŠÙ†', district: 'Ø§Ù„Ù‡Ø±Ù…', type: 'Ø±Ø³Ù…ÙŠØ©', stages: ['Ø«Ø§Ù†ÙˆÙŠ'] },
-  { id: 5, name: 'Ù…Ø¯Ø±Ø³Ø© ÙÙŠØµÙ„ Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯ÙŠØ© Ø¨Ù†Ø§Øª', district: 'ÙÙŠØµÙ„', type: 'Ø±Ø³Ù…ÙŠØ©', stages: ['Ø¥Ø¹Ø¯Ø§Ø¯ÙŠ'] },
+  { id: 1, name: 'مدرسة 6 أكتوبر الرسمية المتميزة للغات', district: '6 أكتوبر', type: 'رسمية متميزة للغات', stages: ['KG1', 'KG2', 'ابتدائي', 'إعدادي'] },
+  { id: 2, name: 'مدرسة العمرانية التجريبية للغات', district: 'العمرانية', type: 'تجريبية لغات', stages: ['KG1', 'KG2', 'ابتدائي', 'إعدادي', 'ثانوي'] },
+  { id: 3, name: 'مدرسة مصطفى كامل الرسمية المتميزة للغات', district: 'العمرانية', type: 'رسمية متميزة للغات', stages: ['ابتدائي', 'إعدادي'] },
+  { id: 4, name: 'مدرسة الهرم الثانوية بنين', district: 'الهرم', type: 'رسمية', stages: ['ثانوي'] },
+  { id: 5, name: 'مدرسة فيصل الإعدادية بنات', district: 'فيصل', type: 'رسمية', stages: ['إعدادي'] },
 ];
+
+const districts = ['الكل', '6 أكتوبر', 'العمرانية', 'الهرم', 'فيصل'];
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' as const } },
+};
 
 export default function SchoolsDirectoryPage() {
   const [search, setSearch] = useState('');
-  const [filterDistrict, setFilterDistrict] = useState('Ø§Ù„ÙƒÙ„');
+  const [filterDistrict, setFilterDistrict] = useState('الكل');
 
-  const districts = ['Ø§Ù„ÙƒÙ„', '6 Ø£ÙƒØªÙˆØ¨Ø±', 'Ø§Ù„Ø¹Ù…Ø±Ø§Ù†ÙŠØ©', 'Ø§Ù„Ù‡Ø±Ù…', 'ÙÙŠØµÙ„'];
-  const filtered = schoolsData.filter(s =>
-    (filterDistrict === 'Ø§Ù„ÙƒÙ„' || s.district === filterDistrict) &&
-    s.name.includes(search)
+  const filtered = schoolsData.filter(school =>
+    (filterDistrict === 'الكل' || school.district === filterDistrict) &&
+    school.name.includes(search)
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold text-center mb-8">Ø¯Ù„ÙŠÙ„ Ø§Ù„Ù…Ø¯Ø§Ø±Ø³</h1>
-        <div className="max-w-2xl mx-auto mb-8 flex flex-wrap gap-4 justify-center">
-          <input
-            type="text"
-            placeholder="Ø§Ø¨Ø­Ø« Ø¹Ù† Ù…Ø¯Ø±Ø³Ø©..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 px-4 py-2 border rounded-lg focus:ring-primary"
-          />
+    <div dir="rtl" className="min-h-screen bg-gradient-to-b from-primary/5 to-background py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-10">
+          <Badge className="bg-accent/20 text-accent-foreground border-0 mb-3 text-xs px-3 py-1 rounded-full">
+            التعليم
+          </Badge>
+          <h1 className="text-3xl md:text-4xl font-black text-foreground mb-2">دليل المدارس</h1>
+          <p className="text-muted-foreground">دليل شامل للمدارس في محافظة الجيزة – ابحث عن المدرسة المناسبة</p>
+        </div>
+
+        {/* Search and Filter */}
+        <div className="flex flex-wrap gap-4 mb-8 justify-center">
+          <div className="flex-1 min-w-[250px]">
+            <div className="relative">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="ابحث عن مدرسة..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pr-10 pl-4 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+          </div>
           <select
             value={filterDistrict}
-            onChange={(e) => setFilterDistrict(e.target.value)}
-            className="px-4 py-2 border rounded-lg"
+            onChange={e => setFilterDistrict(e.target.value)}
+            className="px-4 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
           >
             {districts.map(d => <option key={d}>{d}</option>)}
           </select>
         </div>
-        <div className="grid md:grid-cols-2 gap-6">
-          {filtered.map(school => (
-            <div key={school.id} className="bg-white rounded-xl shadow-md p-5">
-              <h2 className="text-xl font-semibold text-primary">{school.name}</h2>
-              <p className="text-gray-500 text-sm">{school.type} - {school.district}</p>
-              <p className="text-gray-600 mt-2">Ø§Ù„Ù…Ø±Ø§Ø­Ù„: {school.stages.join(' - ')}</p>
-            </div>
-          ))}
-        </div>
+
+        {/* Schools Grid */}
+        {filtered.length === 0 ? (
+          <div className="text-center py-20 text-muted-foreground">
+            <School className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p className="text-lg">لا توجد مدارس مطابقة لبحثك</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map((school, idx) => (
+              <motion.div
+                key={school.id}
+                initial="hidden"
+                animate="visible"
+                variants={fadeUp}
+                transition={{ delay: idx * 0.05 }}
+                whileHover={{ y: -5 }}
+                className="bg-card rounded-2xl border border-border shadow-sm hover:shadow-lg transition-all"
+              >
+                <div className="p-5">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <GraduationCap className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-foreground line-clamp-2">{school.name}</h2>
+                      <p className="text-sm text-muted-foreground">{school.type}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                    <MapPin className="w-4 h-4 text-primary" />
+                    <span>{school.district}</span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {school.stages.map(stage => (
+                      <Badge key={stage} className="bg-gray-100 text-gray-700 border-0 text-xs">
+                        {stage}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

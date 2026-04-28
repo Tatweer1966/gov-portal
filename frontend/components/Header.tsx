@@ -6,10 +6,21 @@ import { usePathname } from 'next/navigation';
 import SearchBar from './SearchBar';
 import LanguageSwitcher from './LanguageSwitcher';
 
+interface NavLink {
+  href: string;
+  label: string;
+}
+
+interface Theme {
+  logoUrl: string;
+  navLinks: NavLink[];
+}
+
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [theme, setTheme] = useState<Theme | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -18,23 +29,29 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems = [
-    { href: '/', label: 'الرئيسية' },
-    { href: '/services', label: 'الخدمات' },
-    { href: '/about-governorate', label: 'عن المحافظة' },
-    { href: '/schools-directory', label: 'المدارس' },
-    { href: '/special-needs-schools', label: 'التربية الخاصة' },
-    { href: '/kindergarten-application', label: 'رياض الأطفال' },
-    { href: '/tech-centers', label: 'المراكز التكنولوجية' },
-    { href: '/social-services', label: 'الخدمات الاجتماعية' },
-    { href: '/golden-citizen', label: 'المواطن الذهبي' },
-    { href: '/governor-qa', label: 'انت تسأل والمحافظ يجيب' },
-    { href: '/events', label: 'الفعاليات' },
-    { href: '/marketplace', label: 'سوق المحافظة' },
-    { href: '/jobs', label: 'وظائف' },
-    { href: '/vault', label: 'خزينة المستندات' },
-    { href: '/dashboard', label: 'لوحة التحكم' },
-  ];
+  useEffect(() => {
+    fetch('/api/tenant/theme')
+      .then(res => res.json())
+      .then(data => {
+        setTheme({
+          logoUrl: data.logoUrl || '/logo.png',
+          navLinks: data.navLinks || [],
+        });
+      })
+      .catch(() => {
+        // Fallback if API fails
+        setTheme({
+          logoUrl: '/logo.png',
+          navLinks: [
+            { href: '/', label: 'الرئيسية' },
+            { href: '/services', label: 'الخدمات' },
+          ],
+        });
+      });
+  }, []);
+
+  // Use empty array while loading to avoid layout shift
+  const navLinks = theme?.navLinks || [];
 
   return (
     <>
@@ -46,8 +63,46 @@ export default function Header() {
         }`}
       >
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            {/* Dashed button (top‑left corner) */}
+          {/* Use flex-row-reverse to align logo on right, button on left */}
+          <div className="flex items-center justify-between flex-row-reverse">
+            {/* Logo – now appears on the far right */}
+            <Link href="/" className="flex items-center gap-2 shrink-0">
+              {theme?.logoUrl ? (
+                <img
+                  src={theme.logoUrl}
+                  alt="شعار المحافظة"
+                  className="h-10 w-auto object-contain"
+                />
+              ) : (
+                // Fallback while loading
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
+                  <span className="text-white text-xl font-bold">ج</span>
+                </div>
+              )}
+              {/* Optional text – you can also remove this line if logos already contain text */}
+              {!theme?.logoUrl && (
+                <span className="text-2xl font-bold bg-gradient-to-l from-primary to-secondary bg-clip-text text-transparent hidden md:inline">
+                  محافظة الجيزة
+                </span>
+              )}
+            </Link>
+
+            {/* Right section (Search + Language + Mobile button) – stays in the middle */}
+            <div className="flex items-center gap-4">
+              <SearchBar />
+              <LanguageSwitcher />
+              <button
+                className="xl:hidden p-2 rounded-lg hover:bg-gray-100 transition"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="القائمة"
+              >
+                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Dashed button – now appears on the far left (opens drawer) */}
             <button
               onClick={() => setDrawerOpen(true)}
               className="p-2 rounded-lg border-2 border-dashed border-primary text-primary hover:bg-primary/10 transition-colors"
@@ -57,53 +112,12 @@ export default function Header() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-
-            {/* Logo (start from right corner) */}
-            <Link href="/" className="flex items-center gap-2 shrink-0">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
-                <span className="text-white text-xl font-bold">ج</span>
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-l from-primary to-secondary bg-clip-text text-transparent hidden md:inline">
-                محافظة الجيزة
-              </span>
-            </Link>
-
-            {/* Desktop Navigation (center) */}
-            <nav className="hidden xl:flex items-center gap-8">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`text-lg font-medium transition-colors whitespace-nowrap ${
-                    pathname === item.href
-                      ? 'text-primary border-b-2 border-primary'
-                      : 'text-gray-700 hover:text-primary'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-
-            {/* Right Section (Search + Language + Mobile button) */}
-            <div className="flex items-center gap-4">
-              <SearchBar />
-              <LanguageSwitcher />
-              <button
-                className="xl:hidden p-2 rounded-lg hover:bg-gray-100 transition"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-            </div>
           </div>
 
-          {/* Mobile Navigation (dropdown) */}
+          {/* Mobile Navigation (dropdown) – uses dynamic navLinks */}
           {mobileMenuOpen && (
             <nav className="xl:hidden py-4 mt-2 border-t border-gray-100 max-h-[70vh] overflow-y-auto">
-              {navItems.map((item) => (
+              {navLinks.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -118,7 +132,7 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Drawer (full‑width side drawer from the left) */}
+      {/* Drawer (full‑width side drawer from the left) – uses same dynamic navLinks */}
       {drawerOpen && (
         <>
           <div
@@ -131,12 +145,13 @@ export default function Header() {
               <button
                 onClick={() => setDrawerOpen(false)}
                 className="p-2 rounded-full hover:bg-gray-100"
+                aria-label="إغلاق"
               >
                 ✕
               </button>
             </div>
             <nav className="flex flex-col gap-2">
-              {navItems.map((item) => (
+              {navLinks.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
