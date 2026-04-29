@@ -13,6 +13,7 @@ const pool = new Pool({
 
 export async function GET() {
   try {
+        await pool.query("SET client_encoding = 'UTF8';");
     const result = await pool.query(`
       SELECT id, name_ar, name_en, icon FROM public.job_categories WHERE is_active = true
     `);

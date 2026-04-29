@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
   params.push(limit, offset);
 
   try {
+        await pool.query("SET client_encoding = 'UTF8';");
     const result = await pool.query(query, params);
     const countQuery = `SELECT COUNT(*) FROM public.services WHERE is_online = true`;
     const countResult = await pool.query(countQuery);

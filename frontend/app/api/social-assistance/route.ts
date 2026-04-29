@@ -13,6 +13,7 @@ const pool = new Pool({
 
 export async function POST(request: NextRequest) {
   try {
+        await pool.query("SET client_encoding = 'UTF8';");
     const body = await request.json();
     const { programType, fullName, nationalId, phone, email, governorate, district, description, urgencyLevel, userId } = body;
     const requestNumber = `SAR-${Date.now()}-${Math.floor(Math.random() * 10000)}`;

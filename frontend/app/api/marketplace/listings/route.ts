@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
   params.push(limit, offset);
 
   try {
+        await pool.query("SET client_encoding = 'UTF8';");
     const result = await pool.query(query, params);
     return NextResponse.json({ success: true, data: result.rows });
   } catch (error) {
@@ -48,6 +49,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+        await pool.query("SET client_encoding = 'UTF8';");
     const formData = await request.formData();
     const listingNumber = `LST-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
     const files = formData.getAll('images') as File[];

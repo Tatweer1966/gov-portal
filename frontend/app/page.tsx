@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import {
   Search,
   GraduationCap,
@@ -44,6 +44,7 @@ interface TenantTheme {
   contactPhone: string;
   address: string;
   tenantName: string;
+  displayNameAr?: string;
 }
 
 // ── Constants ──────────────────────────────────────────────────────────
@@ -77,19 +78,22 @@ const categoryIconMap: Record<number, React.ElementType> = {
   6: Zap,
 };
 
-// ── Animation Variants ─────────────────────────────────────────────────
-const fadeUp = {
-  hidden: { opacity: 0, y: 32 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: 'easeOut' as const } },
-};
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
-};
-const fadeIn = {
-  hidden: { opacity: 0, y: 18 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' as const } },
-};
+// ── Helper to get motion variants based on reduced motion preference ──
+function getMotionVariants(prefersReducedMotion: boolean) {
+  const fadeUp = prefersReducedMotion
+    ? { hidden: { opacity: 1 }, visible: { opacity: 1 } }
+    : { hidden: { opacity: 0, y: 32 }, visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: 'easeOut' as const } } };
+
+  const stagger = prefersReducedMotion
+    ? { visible: { transition: { staggerChildren: 0 } } }
+    : { visible: { transition: { staggerChildren: 0.08, delayChildren: 0.15 } } };
+
+  const fadeIn = prefersReducedMotion
+    ? { hidden: { opacity: 1 }, visible: { opacity: 1 } }
+    : { hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' as const } } };
+
+  return { fadeUp, stagger, fadeIn };
+}
 
 export default function HomePage() {
   const [services, setServices] = useState<Service[]>([]);
@@ -98,12 +102,28 @@ export default function HomePage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<TenantTheme | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Detect reduced motion preference (client‑side only)
+  const prefersReducedMotion = useReducedMotion();
+  const { fadeUp, stagger, fadeIn } = getMotionVariants(!!prefersReducedMotion);
+
+  // Mark component as mounted to avoid hydration mismatches
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     // Fetch tenant theme (logo, name, contact)
     fetch('/api/tenant/theme')
       .then(res => res.json())
-      .then(data => setTheme(data))
+      .then(data => {
+        // Provide fallback if displayNameAr missing
+        if (!data.displayNameAr) {
+          data.displayNameAr = data.tenantName === 'giza' ? 'الجيزة' : 'الإسكندرية';
+        }
+        setTheme(data);
+      })
       .catch(console.error);
 
     // Fetch categories
@@ -130,10 +150,23 @@ export default function HomePage() {
     return matchCat && matchSearch;
   });
 
-  // Use tenant name or fallback
-  const governorateName = theme?.tenantName || 'الجيزة';
+  const governorateName = theme?.displayNameAr || theme?.tenantName || 'الجيزة';
+  const isAlexandria = governorateName === 'الإسكندرية' || theme?.tenantName === 'alexandria';
+  const heroBgUrl = isAlexandria
+    ? 'https://images.unsplash.com/photo-1651870965262-3a8776d60b63?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920'
+    : 'https://images.unsplash.com/photo-1541769740-098e80269166?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920';
+
   const contactPhone = theme?.contactPhone || '١٦١٦١';
   const contactAddress = theme?.address || 'ميدان الجيزة، القاهرة، مصر';
+
+  // Prevent rendering until client is mounted (avoids hydration mismatches)
+  if (!isMounted) {
+    return (
+      <div dir="rtl" className="min-h-screen bg-background font-sans">
+        <div className="container mx-auto py-20 text-center">جاري التحميل...</div>
+      </div>
+    );
+  }
 
   return (
     <div dir="rtl" className="min-h-screen bg-background font-sans">
@@ -162,7 +195,6 @@ export default function HomePage() {
             <Link href="/login" className="text-sm font-semibold text-primary border border-primary/30 hover:bg-primary/5 px-4 py-1.5 rounded-lg transition">
               تسجيل دخول
             </Link>
-            {/* ✅ FIXED: Changed from "/dashboard" to "/register" */}
             <Link href="/register" className="text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-1.5 rounded-lg transition">
               حساب جديد
             </Link>
@@ -170,32 +202,119 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Hero section (unchanged) */}
-      <section className="relative overflow-hidden min-h-[580px] md:min-h-[660px] flex items-center pt-16">
+      {/* Hero Section (accessible, motion‑aware, tenant‑specific) */}
+      <section
+        className="relative overflow-hidden min-h-[580px] md:min-h-[660px] flex items-center pt-16"
+        aria-labelledby="hero-heading"
+      >
+        {/* Background image with optional slow scale */}
         <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1541769740-098e80269166?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920')`,
-          }}
+          role="img"
+          aria-label={`صورة بانورامية لمحافظة ${governorateName}`}
+          className={`absolute inset-0 bg-cover bg-center ${
+            !prefersReducedMotion
+              ? "scale-[1.03] transition-transform duration-[20000ms] ease-out"
+              : ""
+          }`}
+          style={{ backgroundImage: `url('${heroBgUrl}')` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-l from-primary/95 via-primary/80 to-primary/55" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10" />
 
+        {/* Triple-layer gradient system */}
+        <div className="absolute inset-0 bg-gradient-to-l from-primary/95 via-primary/80 to-primary/50" aria-hidden="true" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" aria-hidden="true" />
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-transparent" aria-hidden="true" />
+
+        {/* SVG grain texture */}
+        <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none" aria-hidden="true">
+          <svg width="100%" height="100%">
+            <filter id="heroGrain">
+              <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+              <feColorMatrix type="saturate" values="0" />
+            </filter>
+            <rect width="100%" height="100%" filter="url(#heroGrain)" />
+          </svg>
+        </div>
+
+        {/* Floating gradient blobs */}
+        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-accent/15 rounded-full blur-[120px] pointer-events-none" aria-hidden="true" />
+        <div className="absolute -bottom-24 right-1/4 w-[400px] h-[400px] bg-primary/20 rounded-full blur-[100px] pointer-events-none" aria-hidden="true" />
+        <div className="absolute top-1/3 right-10 w-[250px] h-[250px] bg-white/[0.04] rounded-full blur-[80px] pointer-events-none" aria-hidden="true" />
+
+        {/* Geometric pattern */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.04]" aria-hidden="true">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="heroGeometry" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+                <path d="M30 0L60 30L30 60L0 30Z" fill="none" stroke="white" strokeWidth="0.5" />
+                <circle cx="30" cy="30" r="8" fill="none" stroke="white" strokeWidth="0.3" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#heroGeometry)" />
+          </svg>
+        </div>
+
+        {/* Watermark overlay (Alexandria only) */}
+        {isAlexandria && (
+          <div
+            className="absolute inset-0 bg-[url('/images/alexandria-logo.png')] bg-repeat opacity-[0.06] pointer-events-none mix-blend-overlay"
+            aria-hidden="true"
+          />
+        )}
+        {/* Watermark overlay (Giza only) */}
+        {isAlexandria && (
+          <div
+            className="absolute inset-0 bg-[url('/images/giza-logo.png')] bg-repeat opacity-[0.06] pointer-events-none mix-blend-overlay"
+            aria-hidden="true"
+          />
+        )}
+
+
+        {/* Top accent line */}
+        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-accent/60 to-transparent" aria-hidden="true" />
+
+        {/* Hero content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-16 w-full">
           <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-2xl">
             <motion.div variants={fadeUp}>
-              <Badge className="bg-accent/90 text-accent-foreground border-0 mb-5 text-xs px-3 py-1 rounded-full font-semibold tracking-wide shadow">
-                بوابة الخدمات الحكومية الرسمية
+              <Badge
+                className="bg-accent/90 text-accent-foreground border-0 mb-5 text-xs px-4 py-1.5 rounded-full font-semibold tracking-wide shadow-lg shadow-accent/25 backdrop-blur-sm"
+                role="status"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <span className="relative flex h-2 w-2" aria-hidden="true">
+                    {!prefersReducedMotion && (
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-foreground/60" />
+                    )}
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-foreground/90" />
+                  </span>
+                  بوابة الخدمات الحكومية الرسمية
+                </span>
               </Badge>
             </motion.div>
-            <motion.h1 variants={fadeUp} className="text-4xl md:text-6xl font-black text-white leading-tight mb-4">
-              خدمات محافظة <span className="text-accent drop-shadow-sm">{governorateName}</span>
+
+            <motion.h1
+              variants={fadeUp}
+              id="hero-heading"
+              className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1.15] mb-5 drop-shadow-md"
+            >
+              خدمات محافظة{' '}
+              <span className="text-accent relative inline-block">
+                {governorateName}
+                <span
+                  className="absolute -bottom-1 inset-x-0 h-1 bg-accent/40 rounded-full blur-[2px]"
+                  aria-hidden="true"
+                />
+              </span>
             </motion.h1>
-            <motion.p variants={fadeUp} className="text-white/85 text-base md:text-xl mb-8 leading-relaxed max-w-lg">
+
+            <motion.p
+              variants={fadeUp}
+              className="text-white/90 text-base md:text-lg lg:text-xl mb-8 leading-relaxed max-w-lg"
+            >
               أكثر من ٢٠٠ خدمة حكومية في متناول يدك. أنجز معاملاتك بسهولة وأمان من أي مكان وفي أي وقت.
             </motion.p>
 
-            {/* Search */}
+            {/* Search bar */}
             <motion.div variants={fadeUp} className="relative max-w-xl mb-6">
               <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
               <input
@@ -209,7 +328,7 @@ export default function HomePage() {
               </button>
             </motion.div>
 
-            {/* Quick Links */}
+            {/* Quick links */}
             <motion.div variants={fadeUp} className="flex flex-wrap gap-2">
               <span className="text-white/60 text-sm self-center ml-1">الأكثر طلباً:</span>
               {QUICK_LINKS.map((q) => (
@@ -226,10 +345,14 @@ export default function HomePage() {
           </motion.div>
         </div>
 
-        <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-background to-transparent" />
+        {/* Bottom transition */}
+        <div className="absolute bottom-0 inset-x-0" aria-hidden="true">
+          <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="h-20 bg-gradient-to-t from-background via-background/80 to-transparent" />
+        </div>
       </section>
 
-      {/* Stats */}
+      {/* Stats section */}
       <section className="bg-primary py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.div

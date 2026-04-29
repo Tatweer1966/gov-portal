@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
     const host = request.headers.get('host') || '';
     const tenant = getTenant(host);
     await pool.query(`SET search_path TO ${tenant.schema}, public`);
+    await pool.query("SET client_encoding = 'UTF8';");
 
     const body = await request.json();
     const { fullName, email, phone, subject, description, governorate } = body;

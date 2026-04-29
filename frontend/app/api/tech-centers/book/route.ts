@@ -13,6 +13,7 @@ const pool = new Pool({
 
 export async function POST(req: NextRequest) {
   try {
+        await pool.query("SET client_encoding = 'UTF8';");
     const body = await req.json();
     const { centerId, serviceId, citizenName, citizenNationalId, citizenPhone, citizenEmail, bookingDate, bookingTime, notes, userId } = body;
     const bookingNumber = `BK-${Date.now()}-${Math.floor(Math.random() * 10000)}`;

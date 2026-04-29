@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
     const host = request.headers.get('host') || '';
     const tenant = getTenant(host);
     await pool.query(`SET search_path TO ${tenant.schema}, public`);
+    await pool.query("SET client_encoding = 'UTF8';");
 
     const result = await pool.query(`
       SELECT id, title_ar, content_ar, 'page' as type, created_by
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
     const host = request.headers.get('host') || '';
     const tenant = getTenant(host);
     await pool.query(`SET search_path TO ${tenant.schema}, public`);
+    await pool.query("SET client_encoding = 'UTF8';");
 
     const table = type === 'page' ? 'pages' : 'governorate_news';
     const newStatus = action === 'approve' ? 'published' : 'draft';

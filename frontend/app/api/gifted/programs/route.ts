@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const host = request.headers.get('host') || '';
     const tenant = getTenant(host);
     await pool.query(`SET search_path TO ${tenant.schema}, public`);
+    await pool.query("SET client_encoding = 'UTF8';");
 
     // 2. Query programs with category name (tables are now schema‑qualified via search_path)
     const result = await pool.query(`

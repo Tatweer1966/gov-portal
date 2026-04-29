@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Switch to tenant's schema
     await pool.query(`SET search_path TO ${tenant.schema}, public`);
+    await pool.query("SET client_encoding = 'UTF8';");
 
     // 3. Parse request body
     const body = await request.json();

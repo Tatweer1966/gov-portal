@@ -13,6 +13,7 @@ const pool = new Pool({
 
 export async function GET() {
   try {
+        await pool.query("SET client_encoding = 'UTF8';");
     const result = await pool.query(`
       SELECT q.id, q.question_number, q.user_type, q.question_text, q.category, q.created_at,
              a.answer_text, a.answered_by, a.answered_by_title, a.answer_date

@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
 
     // Switch to the tenant's schema (users table is per tenant)
     await pool.query(`SET search_path TO ${tenant.schema}, public`);
+    await pool.query("SET client_encoding = 'UTF8';");
 
     const result = await pool.query(
       'SELECT id, username, email, password_hash, role FROM users WHERE email = $1',

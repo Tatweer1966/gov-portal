@@ -11,6 +11,7 @@ const pool = new Pool({
 
 export async function POST(request: NextRequest) {
   try {
+        await pool.query("SET client_encoding = 'UTF8';");
     const body = await request.json();
     const {
       childName,

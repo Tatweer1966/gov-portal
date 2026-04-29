@@ -13,6 +13,7 @@ const pool = new Pool({
 
 export async function POST(request: NextRequest) {
   try {
+        await pool.query("SET client_encoding = 'UTF8';");
     const body = await request.json();
     const requestNumber = `INS-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
     const { headOfFamilyName, headOfFamilyNationalId, headOfFamilyPhone, headOfFamilyEmail, governorate, district, address, familyMembers, userId } = body;
@@ -39,6 +40,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Ø§Ù„Ø±Ù‚Ù… Ø§Ù„Ù‚ÙˆÙ…ÙŠ Ø£Ùˆ Ø±Ù‚Ù… Ø§Ù„ØªØ£Ù…ÙŠÙ† Ù…Ø·Ù„ÙˆØ¨' }, { status: 400 });
   }
   try {
+        await pool.query("SET client_encoding = 'UTF8';");
     let query = `
       SELECT r.*, c.card_serial_number, c.expiry_date
       FROM public.comprehensive_health_insurance_requests r

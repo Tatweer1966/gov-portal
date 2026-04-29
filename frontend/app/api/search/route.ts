@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+        await pool.query("SET client_encoding = 'UTF8';");
     let unionQuery = '';
     const params: any[] = [`%${query}%`, `%${query}%`];
     let paramIndex = 3;

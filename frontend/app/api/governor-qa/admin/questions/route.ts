@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
     const host = request.headers.get('host') || '';
     const tenant = getTenant(host);
     await pool.query(`SET search_path TO ${tenant.schema}, public`);
+    await pool.query("SET client_encoding = 'UTF8';");
 
     const result = await pool.query(`
       SELECT q.*, a.answer_text as existing_answer
@@ -40,6 +41,7 @@ export async function POST(request: NextRequest) {
     const host = request.headers.get('host') || '';
     const tenant = getTenant(host);
     await pool.query(`SET search_path TO ${tenant.schema}, public`);
+    await pool.query("SET client_encoding = 'UTF8';");
 
     const body = await request.json();
     const { questionId, answerText, answeredBy, answeredByTitle, publish } = body;

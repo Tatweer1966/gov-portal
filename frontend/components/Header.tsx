@@ -39,7 +39,6 @@ export default function Header() {
         });
       })
       .catch(() => {
-        // Fallback if API fails
         setTheme({
           logoUrl: '/logo.png',
           navLinks: [
@@ -50,7 +49,6 @@ export default function Header() {
       });
   }, []);
 
-  // Use empty array while loading to avoid layout shift
   const navLinks = theme?.navLinks || [];
 
   return (
@@ -63,31 +61,35 @@ export default function Header() {
         }`}
       >
         <div className="container mx-auto px-4 py-3">
-          {/* Use flex-row-reverse to align logo on right, button on left */}
-          <div className="flex items-center justify-between flex-row-reverse">
-            {/* Logo – now appears on the far right */}
-            <Link href="/" className="flex items-center gap-2 shrink-0">
-              {theme?.logoUrl ? (
-                <img
-                  src={theme.logoUrl}
-                  alt="شعار المحافظة"
-                  className="h-10 w-auto object-contain"
-                />
-              ) : (
-                // Fallback while loading
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
-                  <span className="text-white text-xl font-bold">ج</span>
-                </div>
-              )}
-              {/* Optional text – you can also remove this line if logos already contain text */}
-              {!theme?.logoUrl && (
-                <span className="text-2xl font-bold bg-gradient-to-l from-primary to-secondary bg-clip-text text-transparent hidden md:inline">
-                  محافظة الجيزة
-                </span>
-              )}
-            </Link>
+          <div className="flex items-center justify-between">
+            {/* Logo + Dashed button group (now together on the right) */}
+            <div className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2 shrink-0">
+                {theme?.logoUrl ? (
+                  <img
+                    src={theme.logoUrl}
+                    alt="شعار المحافظة"
+                    className="h-10 w-auto object-contain"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
+                    <span className="text-white text-xl font-bold">ج</span>
+                  </div>
+                )}
+              </Link>
+              {/* Dashed button – now right next to the logo */}
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="p-2 rounded-lg border-2 border-dashed border-primary text-primary hover:bg-primary/10 transition-colors"
+                aria-label="القائمة الرئيسية"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
 
-            {/* Right section (Search + Language + Mobile button) – stays in the middle */}
+            {/* Right section (Search + Language + Mobile button) – stays on the left side (opposite) */}
             <div className="flex items-center gap-4">
               <SearchBar />
               <LanguageSwitcher />
@@ -101,20 +103,9 @@ export default function Header() {
                 </svg>
               </button>
             </div>
-
-            {/* Dashed button – now appears on the far left (opens drawer) */}
-            <button
-              onClick={() => setDrawerOpen(true)}
-              className="p-2 rounded-lg border-2 border-dashed border-primary text-primary hover:bg-primary/10 transition-colors"
-              aria-label="القائمة الرئيسية"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
           </div>
 
-          {/* Mobile Navigation (dropdown) – uses dynamic navLinks */}
+          {/* Mobile Navigation (dropdown) */}
           {mobileMenuOpen && (
             <nav className="xl:hidden py-4 mt-2 border-t border-gray-100 max-h-[70vh] overflow-y-auto">
               {navLinks.map((item) => (
@@ -132,7 +123,7 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Drawer (full‑width side drawer from the left) – uses same dynamic navLinks */}
+      {/* Drawer */}
       {drawerOpen && (
         <>
           <div

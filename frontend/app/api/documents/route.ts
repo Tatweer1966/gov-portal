@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
 
     // 2. Switch to tenant's schema
     await pool.query(`SET search_path TO ${tenant.schema}, public`);
+    await pool.query("SET client_encoding = 'UTF8';");
 
     // 3. Query documents (table name is now schema‑qualified via search_path)
     const result = await pool.query(`

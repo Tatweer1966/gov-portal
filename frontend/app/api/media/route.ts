@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const category = searchParams.get('category') || 'all';
   try {
+        await pool.query("SET client_encoding = 'UTF8';");
     let query = `SELECT id, title_ar, url, type, category FROM public.media WHERE is_active = true`;
     const params: any[] = [];
     if (category !== 'all') {

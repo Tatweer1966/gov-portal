@@ -14,6 +14,7 @@ const pool = new Pool({
 
 export async function GET(request: NextRequest) {
   try {
+        await pool.query("SET client_encoding = 'UTF8';");
     const host = request.headers.get('host') || '';
     const tenant = getTenant(host);
     // tenant_settings is in public schema (shared)

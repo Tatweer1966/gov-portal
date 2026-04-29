@@ -11,6 +11,7 @@ const pool = new Pool({
   database: process.env.DATABASE_NAME || 'govportal_app',
   user: process.env.DATABASE_USERNAME || 'govportal',
   password: process.env.DATABASE_PASSWORD || 'GovPortal@2025',
+  options: '-c client_encoding=utf8', // ensures UTF‑8 for all connections
 });
 
 export async function GET(request: NextRequest) {
@@ -18,19 +19,21 @@ export async function GET(request: NextRequest) {
     const host = request.headers.get('host') || '';
     const tenant = getTenant(host);
 
-    // tenant_settings is in public schema (shared)
     const result = await pool.query(
       `SELECT 
          primary_color, secondary_color, logo_url, footer_text, 
          nav_links, homepage_sections,
-         contact_phone, contact_email, address
+         contact_phone, contact_email, address,
+         display_name_ar
        FROM tenant_settings
        WHERE tenant_name = $1`,
       [tenant.name]
     );
 
+    // Fallback defaults if no row found (e.g., new tenant not yet configured)
+    const defaultDisplayName = tenant.name === 'giza' ? 'الجيزة' : 'الإسكندرية';
+
     if (result.rows.length === 0) {
-      // Fallback defaults
       return NextResponse.json({
         primaryColor: '#1e3a8a',
         logoUrl: '/logo.png',
@@ -41,10 +44,14 @@ export async function GET(request: NextRequest) {
         contactEmail: 'info@giza.gov.eg',
         address: 'ديوان عام المحافظة',
         tenantName: tenant.name,
+        displayNameAr: defaultDisplayName,
       });
     }
 
     const row = result.rows[0];
+    // Use stored Arabic name, fallback to tenant name (converted to Arabic) if null
+    const displayNameAr = row.display_name_ar || defaultDisplayName;
+
     return NextResponse.json({
       primaryColor: row.primary_color,
       secondaryColor: row.secondary_color,
@@ -56,6 +63,7 @@ export async function GET(request: NextRequest) {
       contactEmail: row.contact_email,
       address: row.address,
       tenantName: tenant.name,
+      displayNameAr: displayNameAr,
     });
   } catch (error) {
     console.error('Theme fetch error:', error);

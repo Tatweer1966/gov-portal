@@ -1,7 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
 import { useEffect, useState } from 'react';
 
 interface Document {
@@ -9,43 +7,62 @@ interface Document {
   title_ar: string;
   file_path: string;
   created_at: string;
+  document_number?: string;
 }
 
 export default function VaultPage() {
   const [docs, setDocs] = useState<Document[]>([]);
   const [showUpload, setShowUpload] = useState(false);
-  const [uploadForm, setUploadForm] = useState({ categoryId: '1', title: '', description: '' });
+  const [uploadTitle, setUploadTitle] = useState('');
   const [file, setFile] = useState<File | null>(null);
-  const [userId, setUserId] = useState('1');
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Run only on client
-    setUserId(localStorage.getItem('userId') || '1');
+    // Get userId from localStorage (or session)
+    const storedUserId = localStorage.getItem('userId') || '1';
+    setUserId(storedUserId);
   }, []);
 
   useEffect(() => {
     if (userId) {
       fetch(`/api/vault/documents?userId=${userId}`)
         .then(res => res.json())
-        .then(data => { if (data.success) setDocs(data.data); });
+        .then(data => {
+          if (data.success) setDocs(data.data);
+          else console.error(data.error);
+        })
+        .catch(console.error);
     }
   }, [userId]);
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (!file || !uploadTitle) {
+      alert('يرجى إدخال عنوان واختيار ملف');
+      return;
+    }
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('userId', userId);
-    formData.append('categoryId', uploadForm.categoryId);
-    formData.append('title', uploadForm.title);
-    formData.append('description', uploadForm.description);
-    const res = await fetch('/api/vault/documents', { method: 'POST', body: formData });
-    const data = await res.json();
-    if (data.success) {
-      alert('تم رفع المستند');
-      setShowUpload(false);
-      window.location.reload();
+    formData.append('userId', userId || '1');
+    formData.append('title', uploadTitle);
+    try {
+      const res = await fetch('/api/vault/documents', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        alert('تم رفع المستند بنجاح');
+        setShowUpload(false);
+        setUploadTitle('');
+        setFile(null);
+        // Refresh list
+        const refreshRes = await fetch(`/api/vault/documents?userId=${userId}`);
+        const refreshData = await refreshRes.json();
+        if (refreshData.success) setDocs(refreshData.data);
+      } else {
+        alert(data.error || 'فشل في رفع المستند');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('حدث خطأ في الاتصال');
     }
   };
 
@@ -53,25 +70,70 @@ export default function VaultPage() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4"><span className="text-3xl">📁</span></div>
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
+            <span className="text-3xl">📁</span>
+          </div>
           <h1 className="text-3xl font-bold mb-2">خزينة المستندات الرقمية</h1>
-          <button onClick={() => setShowUpload(!showUpload)} className="bg-primary text-white px-6 py-2 rounded-lg">+ رفع مستند</button>
+          <button
+            onClick={() => setShowUpload(!showUpload)}
+            className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition"
+          >
+            {showUpload ? 'إلغاء' : '+ رفع مستند'}
+          </button>
         </div>
+
         {showUpload && (
           <div className="bg-white rounded-xl shadow-md p-6 mb-8 max-w-2xl mx-auto">
             <form onSubmit={handleUpload} className="space-y-4">
-              <div><label>نوع المستند</label><select onChange={e => setUploadForm({...uploadForm, categoryId: e.target.value})} className="w-full border rounded-lg p-2"><option value="1">بطاقة الرقم القومي</option><option value="2">شهادة ميلاد</option><option value="3">عقد ملكية</option></select></div>
-              <div><label>عنوان المستند</label><input type="text" required onChange={e => setUploadForm({...uploadForm, title: e.target.value})} className="w-full border rounded-lg p-2" /></div>
-              <div><label>الملف (PDF/صورة)</label><input type="file" accept=".pdf,.jpg,.png" required onChange={e => setFile(e.target.files?.[0] || null)} className="w-full" /></div>
-              <button type="submit" className="bg-primary text-white px-4 py-2 rounded-lg">رفع</button>
+              <div>
+                <label className="block font-medium mb-1">عنوان المستند</label>
+                <input
+                  type="text"
+                  required
+                  value={uploadTitle}
+                  onChange={e => setUploadTitle(e.target.value)}
+                  className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary focus:outline-none"
+                  placeholder="مثال: بطاقة الرقم القومي"
+                />
+              </div>
+              <div>
+                <label className="block font-medium mb-1">الملف (PDF/صورة)</label>
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.png,.jpeg"
+                  required
+                  onChange={e => setFile(e.target.files?.[0] || null)}
+                  className="w-full"
+                />
+              </div>
+              <button type="submit" className="bg-primary text-white px-4 py-2 rounded-lg w-full">
+                رفع المستند
+              </button>
             </form>
           </div>
         )}
+
+        {docs.length === 0 && !showUpload && (
+          <div className="text-center text-gray-500 mt-8">
+            لا توجد مستندات مرفوعة. استخدم الزر أعلاه لرفع مستند.
+          </div>
+        )}
+
         <div className="grid md:grid-cols-2 gap-6">
           {docs.map(doc => (
-            <div key={doc.id} className="bg-white rounded-xl shadow-md p-4">
-              <h3 className="font-semibold">{doc.title_ar}</h3>
-              <a href={doc.file_path} target="_blank" rel="noopener noreferrer" className="text-primary text-sm hover:underline">عرض المستند</a>
+            <div key={doc.id} className="bg-white rounded-xl shadow-md p-4 transition hover:shadow-lg">
+              <h3 className="font-semibold text-lg">{doc.title_ar}</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                تاريخ الرفع: {new Date(doc.created_at).toLocaleDateString('ar-EG')}
+              </p>
+              <a
+                href={doc.file_path}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-3 text-primary text-sm hover:underline"
+              >
+                عرض المستند 📄
+              </a>
             </div>
           ))}
         </div>

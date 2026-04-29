@@ -11,6 +11,7 @@ const pool = new Pool({
 
 export async function GET() {
   try {
+        await pool.query("SET client_encoding = 'UTF8';");
     const result = await pool.query(`
       SELECT 
         id, 
